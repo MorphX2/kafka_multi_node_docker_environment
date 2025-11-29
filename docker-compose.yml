@@ -1,0 +1,102 @@
+version: '3.8'
+
+services:
+  kafka_01:
+    image: confluentinc/cp-server
+    container_name: kafka_01
+    hostname: kafka_01
+    ports:
+      - "9092:9092"
+      - "29092:29092"
+    volumes:
+      - kafka_data_01:/kafka_data
+    networks:
+      - kafka_network
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'CONTROLLER:PLAINTEXT,LISTENER_BROKER:PLAINTEXT'
+      KAFKA_ADVERTISED_LISTENERS: 'CONTROLLER://kafka_01:29092,LISTENER_BROKER://kafka_01:9092'
+      KAFKA_PROCESS_ROLES: 'broker,controller'
+      KAFKA_CONTROLLER_QUORUM_VOTERS: '1@kafka_01:29092,2@kafka_02:29093,3@kafka_03:29094'
+      KAFKA_LISTENERS: 'CONTROLLER://kafka_01:29092,LISTENER_BROKER://0.0.0.0:9092'
+      KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
+      KAFKA_INTER_BROKER_LISTENER_NAME: 'LISTENER_BROKER'
+      CONFLUENT_METRICS_REPORTER_BOOTSTRAP_SERVERS: 'kafka_01:9092,kafka_02:9093,kafka_03:9094'
+      KAFKA_METRIC_REPORTERS: "io.confluent.metrics.reporter.ConfluentMetricsReporter"
+      CONFLUENT_METRICS_REPORTER_TOPIC_REPLICAS: "3"
+      CLUSTER_ID: nypjLRGA3GQBYyVb
+  kafka_02:
+    image: confluentinc/cp-server
+    container_name: kafka_02
+    hostname: kafka_02
+    ports:
+      - "9093:9093"
+      - "29093:29093"
+    volumes:
+      - kafka_data_02:/kafka_data
+    networks:
+      - kafka_network
+    environment:
+      KAFKA_NODE_ID: 2
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'CONTROLLER:PLAINTEXT,LISTENER_BROKER:PLAINTEXT'
+      KAFKA_ADVERTISED_LISTENERS: 'CONTROLLER://kafka_02:29093,LISTENER_BROKER://kafka_02:9093'
+      KAFKA_PROCESS_ROLES: 'broker,controller'
+      KAFKA_CONTROLLER_QUORUM_VOTERS: '1@kafka_01:29092,2@kafka_02:29093,3@kafka_03:29094'
+      KAFKA_LISTENERS: 'CONTROLLER://kafka_02:29093,LISTENER_BROKER://0.0.0.0:9093'
+      KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
+      KAFKA_INTER_BROKER_LISTENER_NAME: 'LISTENER_BROKER'
+      CONFLUENT_METRICS_REPORTER_BOOTSTRAP_SERVERS: 'kafka_01:9092,kafka_02:9093,kafka_03:9094'
+      KAFKA_METRIC_REPORTERS: "io.confluent.metrics.reporter.ConfluentMetricsReporter"
+      CONFLUENT_METRICS_REPORTER_TOPIC_REPLICAS: "3"
+      CLUSTER_ID: nypjLRGA3GQBYyVb
+  kafka_03:
+    image: confluentinc/cp-server
+    container_name: kafka_03
+    hostname: kafka_03
+    ports:
+      - "9094:9094"
+      - "29094:29094"
+    volumes:
+      - kafka_data_03:/kafka_data
+    networks:
+      - kafka_network
+    environment:
+      KAFKA_NODE_ID: 3
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'CONTROLLER:PLAINTEXT,LISTENER_BROKER:PLAINTEXT'
+      KAFKA_ADVERTISED_LISTENERS: 'CONTROLLER://kafka_03:29094,LISTENER_BROKER://kafka_03:9094'
+      KAFKA_PROCESS_ROLES: 'broker,controller'
+      KAFKA_CONTROLLER_QUORUM_VOTERS: '1@kafka_01:29092,2@kafka_02:29093,3@kafka_03:29094'
+      KAFKA_LISTENERS: 'CONTROLLER://kafka_03:29094,LISTENER_BROKER://0.0.0.0:9094'
+      KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
+      KAFKA_INTER_BROKER_LISTENER_NAME: 'LISTENER_BROKER'
+      CONFLUENT_METRICS_REPORTER_BOOTSTRAP_SERVERS: 'kafka_01:9092,kafka_02:9093,kafka_03:9094'
+      KAFKA_METRIC_REPORTERS: "io.confluent.metrics.reporter.ConfluentMetricsReporter"
+      CONFLUENT_METRICS_REPORTER_TOPIC_REPLICAS: "3"
+      CLUSTER_ID: nypjLRGA3GQBYyVb
+  control_center:
+    image: confluentinc/cp-enterprise-control-center
+    container_name: control-center
+    ports:
+      - 9021:9021
+      - 8081:8081
+    environment:
+      CONTROL_CENTER_BOOTSTRAP_SERVERS: kafka_01:9092,kafka_02:9093,kafka_03:9094
+      CONTROL_CENTER_REPLICATION_FACTOR: 3
+      CONFLUENT_METRICS_REPORTER_BOOTSTRAP_SERVERS: 'kafka_01:9092,kafka_02:9093,kafka_03:9094'
+      CONTROL_CENTER_MONITORING_INTERCEPTOR_TOPIC_REPLICAS: 3
+    networks:
+      - kafka_network  
+    volumes:
+      - control_center_data:/control-center-data
+
+
+networks:
+  kafka_network:
+    name: kafka_network
+    driver: bridge
+
+volumes:
+  kafka_data_01:
+  kafka_data_02:
+  kafka_data_03:
+  control_center_data:
